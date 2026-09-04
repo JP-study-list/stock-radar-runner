@@ -1,0 +1,89 @@
+{
+  "2330-D-raw": {
+    "symbol": "2330",
+    "type": "EQUITY",
+    "exchange": "TWSE",
+    "market": "TSE",
+    "timeframe": "D",
+    "data": [
+      { "date": "2026-08-28", "open": 100, "high": 102, "low": 99, "close": 101, "volume": 30000000 }
+    ],
+    "sort": "asc",
+    "adjusted": false
+  },
+  "6488-D-raw": {
+    "symbol": "6488",
+    "type": "EQUITY",
+    "exchange": "TPEX",
+    "market": "OTC",
+    "timeframe": "D",
+    "data": [
+      { "date": "2026-08-28", "open": "200.5", "high": "204", "low": "199", "close": "203", "volume": 8000000 }
+    ],
+    "sort": "asc",
+    "adjusted": false
+  },
+  "0050-D-raw": {
+    "symbol": "0050",
+    "type": "EQUITY",
+    "exchange": "TWSE",
+    "market": "TSE",
+    "timeframe": "D",
+    "data": [
+      { "date": "2026-08-28", "open": 50, "high": 50.5, "low": 49.8, "close": 50.2, "volume": 50000000 }
+    ],
+    "sort": "asc",
+    "adjusted": false
+  },
+  "2330-5-raw": {
+    "symbol": "2330",
+    "type": "EQUITY",
+    "exchange": "TWSE",
+    "market": "TSE",
+    "timeframe": "5",
+    "data": [
+      { "date": "2026-08-28T09:00:00.000+08:00", "open": 100, "high": 101, "low": 99, "close": 100.5, "volume": 1000 },
+      { "date": "2026-08-28T09:05:00.000+08:00", "open": 100.5, "high": 102, "low": 100, "close": 101, "volume": 1200 }
+    ],
+    "sort": "asc",
+    "adjusted": false
+  },
+  "6488-5-raw": {
+    "symbol": "6488",
+    "type": "EQUITY",
+    "exchange": "TPEX",
+    "market": "OTC",
+    "timeframe": "5",
+    "data": [
+      { "date": "2026-08-28T09:00:00.000+08:00", "open": 200, "high": 201, "low": 199, "close": 200.5, "volume": 80 },
+      { "date": "2026-08-28T09:05:00.000+08:00", "open": 200.5, "high": 202, "low": 200, "close": 201, "volume": 90 }
+    ],
+    "sort": "asc",
+    "adjusted": false
+  },
+  "0050-5-raw": {
+    "symbol": "0050",
+    "type": "EQUITY",
+    "exchange": "TWSE",
+    "market": "TSE",
+    "timeframe": "5",
+    "data": [
+      { "date": "2026-08-28T09:00:00.000+08:00", "open": 50, "high": 50.2, "low": 49.9, "close": 50.1, "volume": 500 },
+      { "date": "2026-08-28T09:05:00.000+08:00", "open": 50.1, "high": 50.3, "low": 50, "close": 50.2, "volume": 600 }
+    ],
+    "sort": "asc",
+    "adjusted": false
+  },
+  "2330-D-adjusted": {
+    "symbol": "2330",
+    "type": "EQUITY",
+    "exchange": "TWSE",
+    "market": "TSE",
+    "timeframe": "D",
+    "data": [
+      { "date": "2026-08-28", "open": 98.5, "high": 100.5, "low": 97.5, "close": 99.5, "volume": 30000000 }
+    ],
+    "sort": "asc",
+    "adjusted": true
+  }
+}

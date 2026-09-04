@@ -1,0 +1,26 @@
+[
+  {
+    "calendar_schema_version": "tw-session-calendar-v1",
+    "exchange": "TWSE",
+    "session_date": "2026-09-01",
+    "state": "trading",
+    "scheduled_open": "2026-09-01T01:00:00.000Z",
+    "scheduled_close": "2026-09-01T05:30:00.000Z",
+    "session_exception_codes": [],
+    "official_source_url": "https://www.twse.com.tw/exchangeReport/STOCK_DAY?response=html&date=20260901&stockNo=2330",
+    "retrieved_at": "2026-09-01T16:30:00.000Z",
+    "valid_through": "2026-09-02T08:29:59.999Z"
+  },
+  {
+    "calendar_schema_version": "tw-session-calendar-v1",
+    "exchange": "TPEX",
+    "session_date": "2026-09-01",
+    "state": "trading",
+    "scheduled_open": "2026-09-01T01:00:00.000Z",
+    "scheduled_close": "2026-09-01T05:30:00.000Z",
+    "session_exception_codes": [],
+    "official_source_url": "https://app.tpex.org.tw/",
+    "retrieved_at": "2026-09-01T16:30:00.000Z",
+    "valid_through": "2026-09-02T08:29:59.999Z"
+  }
+]
