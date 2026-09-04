@@ -42,3 +42,22 @@ test('fixture parser degrades suspected gaps and rejects missing fields, invalid
   assert.throws(() => parseFugleEvidence({ body: offGrid, responseBytes: 512, attempts: 1, rateLimitHeaderObserved: false }, DATA_PROBES[3]!, '2026-08-28'),
     (error: unknown) => error instanceof RunnerFailure && error.failureClass === 'schema_error');
 });
+
+test('fixture parser accepts Fugle TPEx casing and the closing-auction 5-minute boundary', async () => {
+  const fixtures = await fixtureMap();
+  const tpex = parseFugleEvidence({
+    body: fixtures['6488-D-raw'], responseBytes: 512, attempts: 1, rateLimitHeaderObserved: false
+  }, DATA_PROBES[1]!, '2026-08-28');
+  assert.equal(tpex.status, 'pass');
+
+  const closingAuction = structuredClone(fixtures['2330-5-raw']!);
+  closingAuction.data = [
+    { date: '2026-08-28T13:20:00.000+08:00', open: 101, high: 102, low: 100, close: 101.5, volume: 900 },
+    { date: '2026-08-28T13:30:00.000+08:00', open: 101, high: 102, low: 100, close: 101.5, volume: 900 }
+  ];
+  const evidence = parseFugleEvidence({
+    body: closingAuction, responseBytes: 512, attempts: 1, rateLimitHeaderObserved: false
+  }, DATA_PROBES[3]!, '2026-08-28');
+  assert.equal(evidence.status, 'pass');
+  assert.equal(evidence.evidence.continuity, 'continuous');
+});

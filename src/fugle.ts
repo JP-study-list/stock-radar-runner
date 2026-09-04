@@ -59,9 +59,17 @@ function continuity(timestamps: readonly string[], timeframe: 'D' | '5'): Eviden
   for (let index = 1; index < ordered.length; index += 1) {
     const previous = Date.parse(ordered[index - 1]!);
     const current = Date.parse(ordered[index]!);
-    if (current - previous > 5 * 60_000) return 'gap_suspected';
+    const closingAuctionBoundary = taipeiTime(ordered[index - 1]!) === '13:20'
+      && taipeiTime(ordered[index]!) === '13:30';
+    if (current - previous > 5 * 60_000 && !closingAuctionBoundary) return 'gap_suspected';
   }
   return 'continuous';
+}
+
+function taipeiTime(timestamp: string): string {
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Taipei', hour12: false, hour: '2-digit', minute: '2-digit'
+  }).format(new Date(timestamp));
 }
 
 export function parseFugleEvidence(

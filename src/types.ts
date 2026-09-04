@@ -62,17 +62,17 @@ export type ProbeDefinition = {
   providerSymbol: '2330' | '6488' | '0050';
   timeframe: 'D' | '5';
   adjustment: 'raw' | 'adjusted';
-  exchange: 'TWSE' | 'TPEX';
+  exchange: 'TWSE' | 'TPEx';
   market: 'TSE' | 'OTC';
   instrumentTypes: readonly string[];
 };
 
 export const DATA_PROBES: readonly ProbeDefinition[] = [
   { capability: 'historical_1d_raw', symbol: 'TW:2330', providerSymbol: '2330', timeframe: 'D', adjustment: 'raw', exchange: 'TWSE', market: 'TSE', instrumentTypes: ['EQUITY'] },
-  { capability: 'historical_1d_raw', symbol: 'TW:6488', providerSymbol: '6488', timeframe: 'D', adjustment: 'raw', exchange: 'TPEX', market: 'OTC', instrumentTypes: ['EQUITY'] },
+  { capability: 'historical_1d_raw', symbol: 'TW:6488', providerSymbol: '6488', timeframe: 'D', adjustment: 'raw', exchange: 'TPEx', market: 'OTC', instrumentTypes: ['EQUITY'] },
   { capability: 'historical_1d_raw', symbol: 'TW:0050', providerSymbol: '0050', timeframe: 'D', adjustment: 'raw', exchange: 'TWSE', market: 'TSE', instrumentTypes: ['EQUITY'] },
   { capability: 'historical_5m_raw', symbol: 'TW:2330', providerSymbol: '2330', timeframe: '5', adjustment: 'raw', exchange: 'TWSE', market: 'TSE', instrumentTypes: ['EQUITY'] },
-  { capability: 'historical_5m_raw', symbol: 'TW:6488', providerSymbol: '6488', timeframe: '5', adjustment: 'raw', exchange: 'TPEX', market: 'OTC', instrumentTypes: ['EQUITY'] },
+  { capability: 'historical_5m_raw', symbol: 'TW:6488', providerSymbol: '6488', timeframe: '5', adjustment: 'raw', exchange: 'TPEx', market: 'OTC', instrumentTypes: ['EQUITY'] },
   { capability: 'historical_5m_raw', symbol: 'TW:0050', providerSymbol: '0050', timeframe: '5', adjustment: 'raw', exchange: 'TWSE', market: 'TSE', instrumentTypes: ['EQUITY'] },
   { capability: 'historical_1d_adjusted', symbol: 'TW:2330', providerSymbol: '2330', timeframe: 'D', adjustment: 'adjusted', exchange: 'TWSE', market: 'TSE', instrumentTypes: ['EQUITY'] }
 ] as const;

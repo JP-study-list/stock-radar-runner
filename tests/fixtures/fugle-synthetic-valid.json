@@ -14,7 +14,7 @@
   "6488-D-raw": {
     "symbol": "6488",
     "type": "EQUITY",
-    "exchange": "TPEX",
+    "exchange": "TPEx",
     "market": "OTC",
     "timeframe": "D",
     "data": [
@@ -51,7 +51,7 @@
   "6488-5-raw": {
     "symbol": "6488",
     "type": "EQUITY",
-    "exchange": "TPEX",
+    "exchange": "TPEx",
     "market": "OTC",
     "timeframe": "5",
     "data": [
