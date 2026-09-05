@@ -3,6 +3,7 @@ import { relative, resolve } from 'node:path';
 
 const root = process.cwd();
 const workflowPath = resolve(root, '.github/workflows/a0-manual-capability.yml');
+const twseWorkflowPath = resolve(root, '.github/workflows/a0-manual-twse-capability.yml');
 
 function invariant(condition: unknown, label: string): asserts condition {
   if (!condition) throw new Error(`dry-run invariant failed: ${label}`);
@@ -44,6 +45,30 @@ async function main(): Promise<void> {
   invariant(secretStep >= 0 && !/\n      - name:/.test(liveSteps.slice(secretStep + 8)), 'secret-bearing step is last');
   invariant(/run: node dist\/src\/cli\/live-runner\.js/.test(liveSteps.slice(secretStep)), 'secret step invokes Node entrypoint directly');
 
+  const twseWorkflow = await readFile(twseWorkflowPath, 'utf8');
+  invariant(/^on:\n  workflow_dispatch:/m.test(twseWorkflow), 'TWSE workflow_dispatch is the only trigger');
+  invariant(!/^\s*(?:schedule|pull_request|pull_request_target|workflow_run|push):/m.test(twseWorkflow), 'TWSE has no additional trigger');
+  invariant(/^permissions:\n  contents: read$/m.test(twseWorkflow), 'TWSE token is contents read only');
+  invariant(/group: stock-radar-a0-live-capability\n  cancel-in-progress: false/.test(twseWorkflow), 'TWSE shares bounded concurrency');
+  invariant(/if: \$\{\{ github\.event_name == 'workflow_dispatch' && github\.ref == 'refs\/heads\/main' \}\}/.test(twseWorkflow), 'TWSE trusted main guard');
+  invariant(/timeout-minutes: 3\n    environment:\n      name: live-capability/.test(twseWorkflow), 'TWSE live timeout and environment');
+  invariant(!/uses: .*@(?![a-f0-9]{40}(?:\s|#|$))/.test(twseWorkflow), 'TWSE actions use full commit SHA');
+  invariant((twseWorkflow.match(/uses: actions\/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0/g) ?? []).length === 2, 'TWSE reviewed checkout pin');
+  invariant((twseWorkflow.match(/uses: actions\/setup-node@820762786026740c76f36085b0efc47a31fe5020/g) ?? []).length === 2, 'TWSE reviewed setup-node pin');
+  invariant((twseWorkflow.match(/persist-credentials: false/g) ?? []).length === 2, 'TWSE checkout credentials disabled');
+  invariant((twseWorkflow.match(/package-manager-cache: false/g) ?? []).length === 2 && !/uses: actions\/cache@/.test(twseWorkflow), 'TWSE cache disabled');
+  invariant((twseWorkflow.match(/npm ci --ignore-scripts --no-audit --no-fund/g) ?? []).length === 2, 'TWSE install scripts disabled');
+  invariant(!/(?:upload-artifact|download-artifact|GITHUB_ENV)/.test(twseWorkflow), 'TWSE has no artifact or persistent environment output');
+  invariant(!/^env:/m.test(twseWorkflow) && !/^    env:/m.test(twseWorkflow), 'TWSE has no workflow-level or job-level env');
+  invariant((twseWorkflow.match(/FUGLE_API_KEY:/g) ?? []).length === 1, 'TWSE has one secret injection');
+  const twseLiveSteps = twseWorkflow.slice(twseWorkflow.indexOf('  live:'));
+  const twseFetchStep = twseLiveSteps.indexOf('      - name: Fetch and validate TWSE without provider secret');
+  const twseSecretStep = twseLiveSteps.indexOf('      - name: Compare Fugle, redact, and report');
+  invariant(twseFetchStep >= 0 && twseSecretStep > twseFetchStep, 'TWSE fetch precedes secret comparison');
+  invariant(!twseLiveSteps.slice(twseFetchStep, twseSecretStep).includes('FUGLE_API_KEY'), 'TWSE fetch step has no provider secret');
+  invariant(!/\n      - name:/.test(twseLiveSteps.slice(twseSecretStep + 8)), 'TWSE secret-bearing step is last');
+  invariant(/run: node dist\/src\/cli\/twse-live-runner\.js compare/.test(twseLiveSteps.slice(twseSecretStep)), 'TWSE secret step invokes Node entrypoint directly');
+
   const manifest = JSON.parse(await readFile(resolve(root, 'publication-allowlist.json'), 'utf8')) as unknown;
   invariant(Array.isArray(manifest) && manifest.every((item) => typeof item === 'string'), 'allowlist shape');
   const actual = await files(root);
@@ -56,6 +81,7 @@ async function main(): Promise<void> {
   const bundleVersion = JSON.parse(await readFile(resolve(root, 'bundle-version.json'), 'utf8')) as Record<string, unknown>;
   invariant(bundleVersion.runner_bundle_version === packageJson.version, 'bundle and package versions match');
   invariant(bundleVersion.report_schema_version === 'public-runner-capability-v1', 'bundle report schema is reviewed');
+  invariant(bundleVersion.twse_report_schema_version === 'public-runner-twse-capability-v1', 'TWSE report schema is reviewed');
   const typesSource = await readFile(resolve(root, 'src/types.ts'), 'utf8');
   invariant(typesSource.includes(`BUNDLE_VERSION = '${String(packageJson.version)}'`), 'runtime bundle version matches metadata');
   const lockfile = JSON.parse(await readFile(resolve(root, 'package-lock.json'), 'utf8')) as { packages?: Record<string, { resolved?: unknown; integrity?: unknown }> };

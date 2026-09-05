@@ -1,13 +1,13 @@
 {
   "name": "stock-radar-public-runner",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "node --test dist/tests/*.test.js",
-    "test:unit": "node --test dist/tests/unit.test.js",
-    "test:fixture": "node --test dist/tests/fixture.test.js dist/tests/integration.test.js",
+    "test:unit": "node --test dist/tests/unit.test.js dist/tests/twse-unit.test.js",
+    "test:fixture": "node --test dist/tests/fixture.test.js dist/tests/integration.test.js dist/tests/twse-fixture.test.js dist/tests/twse-integration.test.js",
     "test:security": "node --test dist/tests/security.test.js",
     "test:redaction": "node --test dist/tests/redaction.test.js",
     "dry-run": "node dist/scripts/dry-run.js",

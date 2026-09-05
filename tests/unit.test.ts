@@ -17,6 +17,9 @@ test('calendar uses paired official sessions and fails closed for expired or inv
   const entries = parseCalendarSnapshot(await calendar());
   assert.equal(selectSession(entries, new Date('2026-09-02T08:00:00.000Z')), '2026-09-01');
   assert.equal(selectSession(entries, new Date('2026-09-02T08:00:00.000Z'), '2026-09-01'), '2026-09-01');
+  assert.equal(selectSession(entries, new Date('2026-09-05T00:40:00.000Z')), '2026-09-04');
+  assert.equal(selectSession(entries, new Date('2026-09-07T08:29:59.999Z'), '2026-09-04'), '2026-09-04');
+  assert.throws(() => selectSession(entries, new Date('2026-09-07T08:30:00.000Z'), '2026-09-04'), RunnerFailure);
   assert.throws(() => selectSession(entries, new Date('2026-09-02T08:30:00.000Z')), (error: unknown) => error instanceof RunnerFailure && error.failureClass === 'calendar_unknown');
   assert.throws(() => selectSession(entries.slice(0, 1), new Date('2026-09-02T08:00:00.000Z')), RunnerFailure);
   assert.throws(() => selectSession(entries, new Date('2026-09-01T08:29:59.999Z'), '2026-09-01'), RunnerFailure);

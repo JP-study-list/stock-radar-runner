@@ -12,19 +12,32 @@ export const HTTP_LIMITS = {
   pages: 1
 } as const;
 
+export type HttpLimits = {
+  logicalOperations: number;
+  totalAttempts: number;
+  attemptsPerOperation: number;
+  responseBytes: number;
+  records: number;
+  requestTimeoutMs: number;
+  jobTimeoutMs: number;
+  pages: number;
+};
+
 export type FetchLike = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
 
 export class RequestBudget {
   logicalOperationCount = 0;
   httpAttemptCount = 0;
 
+  constructor(private readonly limits: Pick<HttpLimits, 'logicalOperations' | 'totalAttempts'> = HTTP_LIMITS) {}
+
   beginOperation(): void {
-    if (this.logicalOperationCount >= HTTP_LIMITS.logicalOperations) throw new RunnerFailure('unknown');
+    if (this.logicalOperationCount >= this.limits.logicalOperations) throw new RunnerFailure('unknown');
     this.logicalOperationCount += 1;
   }
 
   beginAttempt(): void {
-    if (this.httpAttemptCount >= HTTP_LIMITS.totalAttempts) throw new RunnerFailure('unknown');
+    if (this.httpAttemptCount >= this.limits.totalAttempts) throw new RunnerFailure('unknown');
     this.httpAttemptCount += 1;
   }
 }
@@ -43,6 +56,7 @@ type BoundedFetchOptions = {
   classifyForbidden?: (response: Response) => 'permission_error' | 'entitlement_error' | 'unknown';
   deadlineAt?: number;
   clock?: () => number;
+  limits?: HttpLimits;
 };
 
 function classifyStatus(response: Response, classifyForbidden?: BoundedFetchOptions['classifyForbidden']): FailureClass {
@@ -59,13 +73,13 @@ function retryable(failureClass: FailureClass): boolean {
   return failureClass === 'rate_limited' || failureClass === 'network_error' || failureClass === 'server_error';
 }
 
-function retryDelay(response: Response | null, attempt: number): number {
+function retryDelay(response: Response | null, attempt: number, requestTimeoutMs: number): number {
   const raw = response?.headers.get('retry-after');
   if (raw) {
     const seconds = Number(raw);
-    if (Number.isFinite(seconds) && seconds >= 0) return Math.min(seconds * 1_000, HTTP_LIMITS.requestTimeoutMs);
+    if (Number.isFinite(seconds) && seconds >= 0) return Math.min(seconds * 1_000, requestTimeoutMs);
     const date = Date.parse(raw);
-    if (Number.isFinite(date)) return Math.max(0, Math.min(date - Date.now(), HTTP_LIMITS.requestTimeoutMs));
+    if (Number.isFinite(date)) return Math.max(0, Math.min(date - Date.now(), requestTimeoutMs));
   }
   return attempt * 250;
 }
@@ -75,9 +89,9 @@ function hasRateLimitHeader(headers: Headers): boolean {
     .some((name) => headers.has(name));
 }
 
-async function readBoundedBody(response: Response): Promise<{ text: string; bytes: number }> {
+async function readBoundedBody(response: Response, responseBytes: number): Promise<{ text: string; bytes: number }> {
   const declared = Number(response.headers.get('content-length'));
-  if (Number.isFinite(declared) && declared > HTTP_LIMITS.responseBytes) {
+  if (Number.isFinite(declared) && declared > responseBytes) {
     await response.body?.cancel();
     throw new RunnerFailure('response_too_large', { responseBytes: declared });
   }
@@ -91,7 +105,7 @@ async function readBoundedBody(response: Response): Promise<{ text: string; byte
       const chunk = await reader.read();
       if (chunk.done) break;
       bytes += chunk.value.byteLength;
-      if (bytes > HTTP_LIMITS.responseBytes) {
+      if (bytes > responseBytes) {
         await reader.cancel();
         throw new RunnerFailure('response_too_large', { responseBytes: bytes });
       }
@@ -114,11 +128,12 @@ function timeoutSignal(milliseconds: number): AbortSignal {
 
 export async function fetchBoundedJson(url: URL, init: RequestInit, options: BoundedFetchOptions): Promise<BoundedJsonResult> {
   options.budget.beginOperation();
+  const limits = options.limits ?? HTTP_LIMITS;
   const wait = options.wait ?? ((milliseconds: number) => new Promise<void>((resolve) => setTimeout(resolve, milliseconds)));
   const clock = options.clock ?? Date.now;
   let observedRateLimit = false;
-  for (let attempt = 1; attempt <= HTTP_LIMITS.attemptsPerOperation; attempt += 1) {
-    const remaining = options.deadlineAt === undefined ? HTTP_LIMITS.requestTimeoutMs : options.deadlineAt - clock();
+  for (let attempt = 1; attempt <= limits.attemptsPerOperation; attempt += 1) {
+    const remaining = options.deadlineAt === undefined ? limits.requestTimeoutMs : options.deadlineAt - clock();
     if (remaining <= 0) throw new RunnerFailure('timeout', { httpAttempts: attempt - 1 });
     options.budget.beginAttempt();
     let response: Response;
@@ -126,15 +141,15 @@ export async function fetchBoundedJson(url: URL, init: RequestInit, options: Bou
       response = await options.fetchImpl(url, {
         ...init,
         redirect: 'manual',
-        signal: timeoutSignal(Math.max(1, Math.min(HTTP_LIMITS.requestTimeoutMs, remaining)))
+        signal: timeoutSignal(Math.max(1, Math.min(limits.requestTimeoutMs, remaining)))
       });
     } catch (error) {
       const isTimeout = error instanceof DOMException && (error.name === 'AbortError' || error.name === 'TimeoutError');
       const failureClass: FailureClass = isTimeout ? 'timeout' : 'network_error';
-      if (!retryable(failureClass) || attempt === HTTP_LIMITS.attemptsPerOperation) {
+      if (!retryable(failureClass) || attempt === limits.attemptsPerOperation) {
         throw new RunnerFailure(failureClass, { httpAttempts: attempt });
       }
-      await wait(Math.min(retryDelay(null, attempt), Math.max(0, (options.deadlineAt ?? Number.POSITIVE_INFINITY) - clock())));
+      await wait(Math.min(retryDelay(null, attempt, limits.requestTimeoutMs), Math.max(0, (options.deadlineAt ?? Number.POSITIVE_INFINITY) - clock())));
       continue;
     }
 
@@ -142,10 +157,10 @@ export async function fetchBoundedJson(url: URL, init: RequestInit, options: Bou
     if (!response.ok) {
       await response.body?.cancel();
       const failureClass = classifyStatus(response, options.classifyForbidden);
-      if (!retryable(failureClass) || attempt === HTTP_LIMITS.attemptsPerOperation) {
+      if (!retryable(failureClass) || attempt === limits.attemptsPerOperation) {
         throw new RunnerFailure(failureClass, { httpAttempts: attempt });
       }
-      await wait(Math.min(retryDelay(response, attempt), Math.max(0, (options.deadlineAt ?? Number.POSITIVE_INFINITY) - clock())));
+      await wait(Math.min(retryDelay(response, attempt, limits.requestTimeoutMs), Math.max(0, (options.deadlineAt ?? Number.POSITIVE_INFINITY) - clock())));
       continue;
     }
 
@@ -154,7 +169,7 @@ export async function fetchBoundedJson(url: URL, init: RequestInit, options: Bou
       throw new RunnerFailure('invalid_response', { httpAttempts: attempt });
     }
 
-    const { text, bytes } = await readBoundedBody(response);
+    const { text, bytes } = await readBoundedBody(response, limits.responseBytes);
     try {
       return { body: JSON.parse(text) as unknown, responseBytes: bytes, attempts: attempt, rateLimitHeaderObserved: observedRateLimit };
     } catch {

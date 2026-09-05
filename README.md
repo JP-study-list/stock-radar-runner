@@ -7,10 +7,11 @@ Copyright © 2026. All rights reserved. This repository does not grant an open-s
 ## 安全邊界
 
 - Live workflow 僅允許 `workflow_dispatch`，不含 schedule、PR 或其他 privileged trigger。
-- `FUGLE_API_KEY` 只能存在 `live-capability` GitHub Environment，且只注入最後一個第一方 Node step。
+- Fugle 與 TWSE capability 使用各自獨立的 manual workflow；TWSE 只驗證官方 raw 日行情，不宣稱提供個股 5 分 K。
+- `FUGLE_API_KEY` 只能存在 `live-capability` GitHub Environment，且只注入需要 Fugle request 的最後一個第一方 Node step；TWSE fetch step 不取得 secret。
 - Workflow token 只有 `contents: read`；不保存 artifact、不使用 cache、不執行 package install scripts。
-- 初次 live smoke 固定三個代碼、單一 session、7 個 logical operations、每項最多 2 attempts。
-- Public log 的機器輸出只有一行 `STOCK_RADAR_CAPABILITY_REPORT=<canonical-json>`；完整 provider body、headers、credentials 與自由格式錯誤不得輸出。
+- Fugle smoke 固定三個代碼、單一 session、7 個 logical operations；TWSE smoke 固定 `2330`／`0050`、1 次官方 request＋2 次 Fugle comparison。每項最多 2 attempts。
+- Public log 的機器輸出只使用 closed canonical report line；完整 provider body、行情值、headers、credentials 與自由格式錯誤不得輸出。
 
 ## 本機離線驗證
 
@@ -24,4 +25,4 @@ npm run test:redaction
 npm run dry-run
 ```
 
-以上驗證不會呼叫 provider。`npm run live` 僅供另經授權、受保護的 GitHub Environment workflow 使用，不是一般本機操作指令。
+以上驗證不會呼叫 provider。Live entrypoints 僅供另經授權、受保護的 GitHub Environment workflow 使用，不是一般本機操作指令。

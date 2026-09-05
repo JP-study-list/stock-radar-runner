@@ -1,7 +1,7 @@
 export const REPORT_SCHEMA_VERSION = 'public-runner-capability-v1' as const;
 export const CALENDAR_SCHEMA_VERSION = 'tw-session-calendar-v1' as const;
 export const REPORT_PREFIX = 'STOCK_RADAR_CAPABILITY_REPORT=' as const;
-export const BUNDLE_VERSION = '0.1.0' as const;
+export const BUNDLE_VERSION = '0.2.0' as const;
 
 export const SYMBOLS = ['TW:2330', 'TW:6488', 'TW:0050'] as const;
 export type RunnerSymbol = typeof SYMBOLS[number];

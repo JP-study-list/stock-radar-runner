@@ -1,4 +1,5 @@
 {
-  "runner_bundle_version": "0.1.0",
-  "report_schema_version": "public-runner-capability-v1"
+  "runner_bundle_version": "0.2.0",
+  "report_schema_version": "public-runner-capability-v1",
+  "twse_report_schema_version": "public-runner-twse-capability-v1"
 }

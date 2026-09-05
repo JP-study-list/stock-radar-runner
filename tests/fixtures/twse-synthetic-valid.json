@@ -1,0 +1,28 @@
+{
+  "twse": [
+    {
+      "Date": "1150828",
+      "Code": "2330",
+      "Name": "合成普通股",
+      "TradeVolume": "30,000,000",
+      "OpeningPrice": "100.0000",
+      "HighestPrice": "102.0000",
+      "LowestPrice": "99.0000",
+      "ClosingPrice": "101.0000"
+    },
+    {
+      "Date": "1150828",
+      "Code": "0050",
+      "Name": "合成ETF",
+      "TradeVolume": "50,000,000",
+      "OpeningPrice": "50.0000",
+      "HighestPrice": "50.5000",
+      "LowestPrice": "49.8000",
+      "ClosingPrice": "50.2000"
+    },
+    {
+      "Code": "9999",
+      "Name": "不相關且無成交標的"
+    }
+  ]
+}
